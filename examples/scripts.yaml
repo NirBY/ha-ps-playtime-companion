@@ -1,0 +1,8 @@
+# Use only after a controlled CEC test. Or substitute your own proven Rest Mode script.
+ps4_rest_mode:
+  alias: PS4 Rest Mode
+  use_blueprint:
+    path: ps4_playtime/cec_rest.yaml
+    input:
+      online_sensor: sensor.ps4_ftp_status
+      tv: media_player.your_tv

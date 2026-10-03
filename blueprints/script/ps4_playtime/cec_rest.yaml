@@ -1,0 +1,43 @@
+# No full console power-off, no wake command, and no standby.bin payload.
+mode: single
+sequence:
+- condition: state
+  entity_id: !input 'online_sensor'
+  state: online
+- action: media_player.turn_off
+  target:
+    entity_id: !input 'tv'
+- wait_template: '{{ is_state(online_sensor, ''offline'') }}'
+  timeout: 00:00:45
+  continue_on_timeout: true
+- if:
+  - condition: template
+    value_template: '{{ not wait.completed }}'
+  then:
+  - action: persistent_notification.create
+    data:
+      notification_id: ps4_rest_mode_failure
+      title: PS4 — נדרש לבדוק מצב מנוחה
+      message: נשלחה פקודת CEC לטלוויזיה, אך ה־PS4 לא זוהה כלא מקוון בתוך 45 שניות. יש לבדוק את הקונסולה; פקודת
+        הטלוויזיה אינה הוכחה למצב מנוחה.
+variables:
+  online_sensor: !input 'online_sensor'
+blueprint:
+  name: PS4 Playtime Companion · CEC Rest Mode adapter
+  description: CEC adapter example. Test on your actual TV/PS4 before enabling enforcement. FTP offline is not proof
+    of Rest Mode. Some TVs can enter Art Mode; CEC wake behaviour depends on other HDMI devices.
+  domain: script
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    online_sensor:
+      name: PS4 availability sensor
+      description: Must report online while the console is active. FTP is a proxy, not proof of Rest Mode.
+      selector:
+        entity:
+          domain: sensor
+    tv:
+      name: CEC-capable TV
+      selector:
+        entity:
+          domain: media_player

@@ -1,0 +1,4 @@
+# Left = template ID. Right = YOUR entity ID. Add helper mappings here if needed.
+sensor.ps4_ftp_status: sensor.ps4_ftp_status
+sensor.ps4_play_time_today: sensor.ps4_play_time_today
+automation.ps4_playtime_enforcement: automation.ps4_playtime_enforcement

@@ -1,0 +1,240 @@
+# Schedule and quota enforcement. Helper values are read each run.
+triggers:
+- trigger: time_pattern
+  minutes: /1
+  alias: בדיקה כל דקה — גם אחרי שינוי הגדרות
+- trigger: state
+  entity_id: !input 'online_sensor'
+  to: online
+  for: 00:00:15
+  alias: בדיקה לאחר שהקונסולה חוזרת לרשת
+- trigger: homeassistant
+  event: start
+  alias: בדיקה לאחר הפעלת Home Assistant
+- trigger: time
+  at:
+  - !input 'weekday_end'
+  - !input 'friday_end'
+  - !input 'saturday_end'
+  - 00:00:00
+  alias: בדיקה בשעת סיום ובחצות
+- trigger: state
+  entity_id: !input 'manual_block'
+  to: 'on'
+  alias: Apply a manual block immediately
+conditions:
+- alias: הקונסולה פעילה לפי FTP
+  condition: state
+  entity_id: !input 'online_sensor'
+  state: online
+- alias: מחוץ לשעות או שהמכסה נוצלה
+  condition: template
+  value_template: '{# בחירת הגדרות היום: שישי, שבת או א׳–ה׳. הערכים נערכים בלוח PS4. #}
+
+    {% set profile = ''friday'' if now().weekday() == 4 else ''saturday'' if now().weekday() == 5 else ''weekday''
+    %}
+
+    {% set start_value = states({''weekday'': weekday_start, ''friday'': friday_start, ''saturday'': saturday_start}[profile])
+    %}
+
+    {% set end_value = states({''weekday'': weekday_end, ''friday'': friday_end, ''saturday'': saturday_end}[profile])
+    %}
+
+    {% set hours = states({''weekday'': weekday_hours, ''friday'': friday_hours, ''saturday'': saturday_hours}[profile])
+    | float(0) %}
+
+    {# תוספת תקפה ליום המקומי בלבד; אינה דוחה את שעת הסיום. #}
+
+    {% set bonus = states(bonus_minutes) | float(0) if states(bonus_date) == now().date() | string else 0 %}
+
+    {% set hours = hours + bonus / 60 %}
+
+    {% set end_enabled = profile != ''friday'' or is_state(friday_end_enabled,''on'') %}
+
+    {% set valid = start_value not in [''unknown'',''unavailable''] and end_value not in [''unknown'',''unavailable'']
+    and hours > 0 %}
+
+    {% set start = today_at(start_value) if valid else today_at(''00:00'') %}
+
+    {% set end = today_at(end_value) if valid else today_at(''00:00'') %}
+
+    {# טווח חוצה חצות אינו נתמך; ביום שישי ניתן לבטל שעת סיום. #}
+
+    {% set valid = valid and (not end_enabled or end > start) %}
+
+    {% set allowed = valid and now() >= start and (not end_enabled or now() < end) %}
+
+    {% set used = states(daily_sensor) | float(0) %}
+
+    {% set quota = hours * 60 - used * 60 %}
+
+    {% set remaining = [quota, (end-now()).total_seconds()/60] | min if end_enabled else quota %}
+
+    {{ is_state(manual_block,''on'') or (valid and (not allowed or (has_value(daily_sensor) and used >= hours)))
+    }}'
+actions:
+- choose:
+  - conditions: []
+    sequence: !input 'rest_actions'
+mode: single
+variables:
+  weekday_start: !input 'weekday_start'
+  weekday_end: !input 'weekday_end'
+  weekday_hours: !input 'weekday_hours'
+  friday_start: !input 'friday_start'
+  friday_end: !input 'friday_end'
+  friday_hours: !input 'friday_hours'
+  saturday_start: !input 'saturday_start'
+  saturday_end: !input 'saturday_end'
+  saturday_hours: !input 'saturday_hours'
+  voice_start: !input 'voice_start'
+  voice_end: !input 'voice_end'
+  warning_early: !input 'warning_early'
+  warning_soon: !input 'warning_soon'
+  warning_final: !input 'warning_final'
+  friday_end_enabled: !input 'friday_end_enabled'
+  voice_enabled: !input 'voice_enabled'
+  bonus_minutes: !input 'bonus_minutes'
+  bonus_date: !input 'bonus_date'
+  manual_block: !input 'manual_block'
+  online_sensor: !input 'online_sensor'
+  daily_sensor: !input 'daily_sensor'
+blueprint:
+  name: PS4 Playtime Companion · Schedule & quota
+  description: Daily schedules and quotas with editable helpers. Runs once per minute and after availability returns.
+    Uses a user-supplied, tested Rest Mode action. No direct GoldHEN standby payload is included.
+  domain: automation
+  homeassistant:
+    min_version: 2024.10.0
+  input:
+    weekday_start:
+      name: Weekday Start
+      default: input_datetime.ps4_weekday_start
+      selector:
+        entity:
+          domain: input_datetime
+    weekday_end:
+      name: Weekday End
+      default: input_datetime.ps4_weekday_end
+      selector:
+        entity:
+          domain: input_datetime
+    weekday_hours:
+      name: Weekday Hours
+      default: input_number.ps4_weekday_hours
+      selector:
+        entity:
+          domain: input_number
+    friday_start:
+      name: Friday Start
+      default: input_datetime.ps4_friday_start
+      selector:
+        entity:
+          domain: input_datetime
+    friday_end:
+      name: Friday End
+      default: input_datetime.ps4_friday_end
+      selector:
+        entity:
+          domain: input_datetime
+    friday_hours:
+      name: Friday Hours
+      default: input_number.ps4_friday_hours
+      selector:
+        entity:
+          domain: input_number
+    saturday_start:
+      name: Saturday Start
+      default: input_datetime.ps4_saturday_start
+      selector:
+        entity:
+          domain: input_datetime
+    saturday_end:
+      name: Saturday End
+      default: input_datetime.ps4_saturday_end
+      selector:
+        entity:
+          domain: input_datetime
+    saturday_hours:
+      name: Saturday Hours
+      default: input_number.ps4_saturday_hours
+      selector:
+        entity:
+          domain: input_number
+    voice_start:
+      name: Voice Start
+      default: input_datetime.ps4_voice_start
+      selector:
+        entity:
+          domain: input_datetime
+    voice_end:
+      name: Voice End
+      default: input_datetime.ps4_voice_end
+      selector:
+        entity:
+          domain: input_datetime
+    warning_early:
+      name: Warning Early
+      default: input_number.ps4_warning_early
+      selector:
+        entity:
+          domain: input_number
+    warning_soon:
+      name: Warning Soon
+      default: input_number.ps4_warning_soon
+      selector:
+        entity:
+          domain: input_number
+    warning_final:
+      name: Warning Final
+      default: input_number.ps4_warning_final
+      selector:
+        entity:
+          domain: input_number
+    friday_end_enabled:
+      name: Friday End Enabled
+      default: input_boolean.ps4_friday_end_enabled
+      selector:
+        entity:
+          domain: input_boolean
+    voice_enabled:
+      name: Voice Enabled
+      default: input_boolean.ps4_voice_enabled
+      selector:
+        entity:
+          domain: input_boolean
+    bonus_minutes:
+      name: Bonus Minutes
+      default: input_number.ps4_bonus_minutes
+      selector:
+        entity:
+          domain: input_number
+    bonus_date:
+      name: Bonus Date
+      default: input_datetime.ps4_bonus_date
+      selector:
+        entity:
+          domain: input_datetime
+    manual_block:
+      name: Manual Block
+      default: input_boolean.ps4_manual_block
+      selector:
+        entity:
+          domain: input_boolean
+    online_sensor:
+      name: PS4 availability sensor
+      description: Must report online while the console is active. FTP is a proxy, not proof of Rest Mode.
+      selector:
+        entity:
+          domain: sensor
+    daily_sensor:
+      name: Daily active hours
+      default: sensor.ps4_play_time_today
+      selector:
+        entity:
+          domain: sensor
+    rest_actions:
+      name: Rest Mode action
+      description: Select a tested script/action that enters Rest Mode. Never cut console power.
+      selector:
+        action: {}

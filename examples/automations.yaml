@@ -1,0 +1,25 @@
+# Examples start DISABLED. Choose your TTS provider/language, validate and then enable explicitly.
+- id: ps4_playtime_enforcement
+  alias: PS4 Playtime Enforcement
+  initial_state: false
+  use_blueprint:
+    path: ps4_playtime/enforce.yaml
+    input:
+      online_sensor: sensor.ps4_ftp_status
+      rest_actions:
+      - action: script.ps4_rest_mode
+- id: ps4_playtime_reminders
+  alias: PS4 Playtime Reminders
+  initial_state: false
+  use_blueprint:
+    path: ps4_playtime/reminders.yaml
+    input:
+      online_sensor: sensor.ps4_ftp_status
+      announcement_actions:
+      - action: tts.speak
+        target:
+          entity_id: tts.your_provider
+        data:
+          media_player_entity_id: media_player.your_speaker
+          language: iw
+          message: '{{ message }}'

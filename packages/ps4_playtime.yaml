@@ -1,0 +1,286 @@
+# Fresh installs only. Replace sensor.ps4_ftp_status. No initial values: helpers restore user settings after restart.
+input_datetime:
+  ps4_weekday_start:
+    name: PS4 Weekday Start
+    has_date: false
+    has_time: true
+  ps4_weekday_end:
+    name: PS4 Weekday End
+    has_date: false
+    has_time: true
+  ps4_friday_start:
+    name: PS4 Friday Start
+    has_date: false
+    has_time: true
+  ps4_friday_end:
+    name: PS4 Friday End
+    has_date: false
+    has_time: true
+  ps4_saturday_start:
+    name: PS4 Saturday Start
+    has_date: false
+    has_time: true
+  ps4_saturday_end:
+    name: PS4 Saturday End
+    has_date: false
+    has_time: true
+  ps4_voice_start:
+    name: PS4 Voice Start
+    has_date: false
+    has_time: true
+  ps4_voice_end:
+    name: PS4 Voice End
+    has_date: false
+    has_time: true
+  ps4_bonus_date:
+    name: PS4 Bonus Date
+    has_date: true
+    has_time: false
+input_number:
+  ps4_weekday_hours:
+    name: PS4 Weekday Hours
+    min: 0.5
+    max: 24
+    step: 0.5
+    mode: box
+    unit_of_measurement: h
+  ps4_friday_hours:
+    name: PS4 Friday Hours
+    min: 0.5
+    max: 24
+    step: 0.5
+    mode: box
+    unit_of_measurement: h
+  ps4_saturday_hours:
+    name: PS4 Saturday Hours
+    min: 0.5
+    max: 24
+    step: 0.5
+    mode: box
+    unit_of_measurement: h
+  ps4_warning_early:
+    name: PS4 Warning Early
+    min: 1
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: min
+  ps4_warning_soon:
+    name: PS4 Warning Soon
+    min: 1
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: min
+  ps4_warning_final:
+    name: PS4 Warning Final
+    min: 1
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: min
+  ps4_bonus_minutes:
+    name: PS4 Bonus Minutes
+    min: 0
+    max: 600
+    step: 15
+    mode: box
+    unit_of_measurement: min
+input_boolean:
+  ps4_friday_end_enabled:
+    name: PS4 Friday End Enabled
+  ps4_voice_enabled:
+    name: PS4 Voice Enabled
+  ps4_manual_block:
+    name: PS4 Manual Block
+sensor:
+- platform: history_stats
+  name: PS4 Play Time Today
+  unique_id: ps4_playtime_companion_today
+  entity_id: sensor.ps4_ftp_status
+  state: online
+  type: time
+  start: '{{ today_at("00:00") }}'
+  end: '{{ now() }}'
+script:
+  ps4_initialize_defaults:
+    alias: PS4 · Initialize defaults (run once)
+    description: Run once on fresh installation, BEFORE enabling blueprints. Running again overwrites your schedule
+      settings. No power or audio actions.
+    mode: single
+    sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_weekday_start
+      data:
+        time: '12:00:00'
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_weekday_end
+      data:
+        time: '18:00:00'
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_weekday_hours
+      data:
+        value: 2
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_friday_start
+      data:
+        time: 08:00:00
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_friday_end
+      data:
+        time: '23:59:00'
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_friday_hours
+      data:
+        value: 5
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_saturday_start
+      data:
+        time: 08:00:00
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_saturday_end
+      data:
+        time: '20:00:00'
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_saturday_hours
+      data:
+        value: 5
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_voice_start
+      data:
+        time: '12:00:00'
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_voice_end
+      data:
+        time: '18:00:00'
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_warning_early
+      data:
+        value: 30
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_warning_soon
+      data:
+        value: 10
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_warning_final
+      data:
+        value: 1
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.ps4_friday_end_enabled
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.ps4_voice_enabled
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_bonus_minutes
+      data:
+        value: 0
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_bonus_date
+      data:
+        date: '2000-01-01'
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.ps4_manual_block
+  ps4_add_playtime:
+    alias: PS4 — הוספת זמן להיום
+    description: מגדיל את מכסת היום בלבד. אינו עוקף את שעת הסיום, אינו מדליק מכשירים ואינו משנה שעות שקט. התוספת
+      הקודמת פגה בחצות.
+    mode: queued
+    max: 10
+    fields:
+      minutes:
+        name: דקות להוסיף
+        default: 15
+        selector:
+          number:
+            min: 0
+            max: 120
+            step: 15
+            mode: box
+    sequence:
+    - variables:
+        old_bonus: '{{ states(''input_number.ps4_bonus_minutes'') | float(0) if states(''input_datetime.ps4_bonus_date'')
+          == now().date() | string else 0 }}'
+        extra: '{{ [120, [0, minutes | default(15) | int(15)] | max] | min }}'
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.ps4_bonus_minutes
+      data:
+        value: '{{ [600, (old_bonus | float(0)) + (extra | int(0))] | min }}'
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.ps4_bonus_date
+      data:
+        date: '{{ now().date() | string }}'
+  ps4_block_playtime:
+    alias: PS4 — חסום עכשיו
+    description: Enables enforcement and sets a persistent manual block. Does not wake the console.
+    mode: single
+    sequence:
+    - action: automation.turn_on
+      target:
+        entity_id: automation.ps4_playtime_enforcement
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.ps4_manual_block
+template:
+- binary_sensor:
+  - name: PS4 Extra Time Available
+    unique_id: ps4_extra_time_available
+    state: '{# בחירת הגדרות היום: שישי, שבת או א׳–ה׳. הערכים נערכים בלוח PS4. #}
+
+      {% set profile = ''friday'' if now().weekday() == 4 else ''saturday'' if now().weekday() == 5 else ''weekday''
+      %}
+
+      {% set start_value = states(''input_datetime.ps4_'' ~ profile ~ ''_start'') %}
+
+      {% set end_value = states(''input_datetime.ps4_'' ~ profile ~ ''_end'') %}
+
+      {% set hours = states(''input_number.ps4_'' ~ profile ~ ''_hours'') | float(0) %}
+
+      {# תוספת תקפה ליום המקומי בלבד; אינה דוחה את שעת הסיום. #}
+
+      {% set bonus = states(''input_number.ps4_bonus_minutes'') | float(0) if states(''input_datetime.ps4_bonus_date'')
+      == now().date() | string else 0 %}
+
+      {% set hours = hours + bonus / 60 %}
+
+      {% set end_enabled = profile != ''friday'' or is_state(''input_boolean.ps4_friday_end_enabled'',''on'') %}
+
+      {% set valid = start_value not in [''unknown'',''unavailable''] and end_value not in [''unknown'',''unavailable'']
+      and hours > 0 %}
+
+      {% set start = today_at(start_value) if valid else today_at(''00:00'') %}
+
+      {% set end = today_at(end_value) if valid else today_at(''00:00'') %}
+
+      {# טווח חוצה חצות אינו נתמך; ביום שישי ניתן לבטל שעת סיום. #}
+
+      {% set valid = valid and (not end_enabled or end > start) %}
+
+      {% set allowed = valid and now() >= start and (not end_enabled or now() < end) %}
+
+      {% set used = states(''sensor.ps4_play_time_today'') | float(0) %}
+
+      {% set quota = hours * 60 - used * 60 %}
+
+      {% set remaining = [quota, (end-now()).total_seconds()/60] | min if end_enabled else quota %}
+
+      {{ valid and (not allowed or (has_value(''sensor.ps4_play_time_today'') and used >= hours)) }}'

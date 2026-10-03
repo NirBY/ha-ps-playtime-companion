@@ -1,0 +1,1048 @@
+# Dashboard template (not an HA Blueprint). Render entity mappings with tools/render_dashboard.py.
+title: PS4 · Playtime Companion
+views:
+- title: PS4
+  path: settings
+  icon: mdi:controller-classic
+  type: sections
+  max_columns: 2
+  sections:
+  - type: grid
+    cards:
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: vertical-stack
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "# 🎮 Playtime Companion\n### זמן לשחק. זמן לנוח.\n{% set p = ''friday'' if now().weekday()==4
+            else ''saturday'' if now().weekday()==5 else ''weekday'' %}\n{% set cap = states({''weekday'': ''input_number.ps4_weekday_hours'',
+            ''friday'': ''input_number.ps4_friday_hours'', ''saturday'': ''input_number.ps4_saturday_hours''}[p])
+            | float(0) %}\n{% set cap = cap + (states(''input_number.ps4_bonus_minutes'') | float(0) / 60 if states(''input_datetime.ps4_bonus_date'')
+            == now().date() | string else 0) %}\n{% set used = states(''sensor.ps4_play_time_today'') | float(0)
+            %}\n{% set start = states({''weekday'': ''input_datetime.ps4_weekday_start'', ''friday'': ''input_datetime.ps4_friday_start'',
+            ''saturday'': ''input_datetime.ps4_saturday_start''}[p]) %}\n{% set end = states({''weekday'': ''input_datetime.ps4_weekday_end'',
+            ''friday'': ''input_datetime.ps4_friday_end'', ''saturday'': ''input_datetime.ps4_saturday_end''}[p])
+            %}\n{% set unlimited = p==''friday'' and is_state(''input_boolean.ps4_friday_end_enabled'',''off'')
+            %}\n**היום:** ⁦{{ start[:5] }}{{ '''' if unlimited else '' – '' ~ end[:5] }}⁩ {{ ''והלאה'' if unlimited
+            else '''' }} · מכסה {{ cap | round(1) }} שעות\n\n**{{ (used * 60) | round(0) | int }} דקות נצברו** ·
+            {{ ([0, (cap-used)*60] | max) | round(0) | int }} דקות במכסה נותרו\n\nמצב מנוחה באמצעות CEC · שמירה
+            על GoldHEN" : "# 🎮 Playtime Companion\n### Time to play. Time to rest.\n{% set p = ''friday'' if now().weekday()==4
+            else ''saturday'' if now().weekday()==5 else ''weekday'' %}\n{% set cap = states({''weekday'': ''input_number.ps4_weekday_hours'',
+            ''friday'': ''input_number.ps4_friday_hours'', ''saturday'': ''input_number.ps4_saturday_hours''}[p])
+            | float(0) %}\n{% set cap = cap + (states(''input_number.ps4_bonus_minutes'') | float(0) / 60 if states(''input_datetime.ps4_bonus_date'')
+            == now().date() | string else 0) %}\n{% set used = states(''sensor.ps4_play_time_today'') | float(0)
+            %}\n{% set start = states({''weekday'': ''input_datetime.ps4_weekday_start'', ''friday'': ''input_datetime.ps4_friday_start'',
+            ''saturday'': ''input_datetime.ps4_saturday_start''}[p]) %}\n{% set end = states({''weekday'': ''input_datetime.ps4_weekday_end'',
+            ''friday'': ''input_datetime.ps4_friday_end'', ''saturday'': ''input_datetime.ps4_saturday_end''}[p])
+            %}\n{% set unlimited = p==''friday'' and is_state(''input_boolean.ps4_friday_end_enabled'',''off'')
+            %}\n**Today:** {{ start[:5] }} {{ ''onwards'' if unlimited else ''– '' ~ end[:5] }} · quota {{ cap |
+            round(1) }} hours\n\n**{{ (used * 60) | round(0) | int }} minutes used** · {{ ([0, (cap-used)*60] |
+            max) | round(0) | int }} minutes of quota left\n\nRest Mode via CEC · Preserve GoldHEN"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-card { background: linear-gradient(125deg, #172b4d, #23465c 55%, #275a58); color: #fff;
+              padding: 10px 12px; } ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right;
+              } .card-header, ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input
+              { direction: ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-card { background: linear-gradient(125deg, #172b4d, #23465c 55%, #275a58); color: #fff;
+              padding: 10px 12px; } ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left;
+              } .card-header, ha-markdown { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input
+              { direction: ltr; }"}'
+        - type: markdown
+          content: '${vars[0] ? "{# בחירת הגדרות היום: שישי, שבת או א׳–ה׳. הערכים נערכים בלוח PS4. #}\n{% set profile
+            = ''friday'' if now().weekday() == 4 else ''saturday'' if now().weekday() == 5 else ''weekday'' %}\n{%
+            set start_value = states({''weekday'': ''input_datetime.ps4_weekday_start'', ''friday'': ''input_datetime.ps4_friday_start'',
+            ''saturday'': ''input_datetime.ps4_saturday_start''}[profile]) %}\n{% set end_value = states({''weekday'':
+            ''input_datetime.ps4_weekday_end'', ''friday'': ''input_datetime.ps4_friday_end'', ''saturday'': ''input_datetime.ps4_saturday_end''}[profile])
+            %}\n{% set hours = states({''weekday'': ''input_number.ps4_weekday_hours'', ''friday'': ''input_number.ps4_friday_hours'',
+            ''saturday'': ''input_number.ps4_saturday_hours''}[profile]) | float(0) %}\n{# תוספת תקפה ליום המקומי
+            בלבד; אינה דוחה את שעת הסיום. #}\n{% set bonus = states(''input_number.ps4_bonus_minutes'') | float(0)
+            if states(''input_datetime.ps4_bonus_date'') == now().date() | string else 0 %}\n{% set hours = hours
+            + bonus / 60 %}\n{% set end_enabled = profile != ''friday'' or is_state(''input_boolean.ps4_friday_end_enabled'',''on'')
+            %}\n{% set valid = start_value not in [''unknown'',''unavailable''] and end_value not in [''unknown'',''unavailable'']
+            and hours > 0 %}\n{% set start = today_at(start_value) if valid else today_at(''00:00'') %}\n{% set
+            end = today_at(end_value) if valid else today_at(''00:00'') %}\n{# טווח חוצה חצות אינו נתמך; ביום שישי
+            ניתן לבטל שעת סיום. #}\n{% set valid = valid and (not end_enabled or end > start) %}\n{% set allowed
+            = valid and now() >= start and (not end_enabled or now() < end) %}\n{% set used = states(''sensor.ps4_play_time_today'')
+            | float(0) %}\n{% set quota = hours * 60 - used * 60 %}\n{% set remaining = [quota, (end-now()).total_seconds()/60]
+            | min if end_enabled else quota %}\n\n{% set minutes_left = ([0, remaining] | max) | round(0, ''ceil'')
+            | int %}\n{% if is_state(''input_boolean.ps4_manual_block'',''on'') %}\n## ⁦00:00⁩ · חסימה ידנית פעילה\nשחרור
+            החסימה אינו עוקף את שעות המשחק והמכסה.\n{% elif not valid %}\n## ⚠️ יש לתקן את שעות המשחק\n{% elif not
+            allowed %}\n## ⁦00:00⁩ · מחוץ לשעות המשחק\nתוספת למכסה אינה משנה את שעת הסיום.\n{% elif not has_value(''sensor.ps4_play_time_today'')
+            %}\n## ממתין לנתוני זמן המשחק\n{% else %}\n# ⁦{{ ''%02d:%02d'' | format(minutes_left // 60, minutes_left
+            % 60) }}⁩\n{{ ''עד למצב מנוחה'' if is_state(''sensor.ps4_ftp_status'',''online'') else ''יתרה זמינה
+            · הקונסולה אינה פעילה ברשת'' }}\n{% endif %}\n\n**תוספת להיום: {{ bonus | int }} דקות** · המונה בשעות:דקות,
+            מתעדכן כדקה.\n" : "\n{% set profile = ''friday'' if now().weekday() == 4 else ''saturday'' if now().weekday()
+            == 5 else ''weekday'' %}\n{% set start_value = states({''weekday'': ''input_datetime.ps4_weekday_start'',
+            ''friday'': ''input_datetime.ps4_friday_start'', ''saturday'': ''input_datetime.ps4_saturday_start''}[profile])
+            %}\n{% set end_value = states({''weekday'': ''input_datetime.ps4_weekday_end'', ''friday'': ''input_datetime.ps4_friday_end'',
+            ''saturday'': ''input_datetime.ps4_saturday_end''}[profile]) %}\n{% set hours = states({''weekday'':
+            ''input_number.ps4_weekday_hours'', ''friday'': ''input_number.ps4_friday_hours'', ''saturday'': ''input_number.ps4_saturday_hours''}[profile])
+            | float(0) %}\n\n{% set bonus = states(''input_number.ps4_bonus_minutes'') | float(0) if states(''input_datetime.ps4_bonus_date'')
+            == now().date() | string else 0 %}\n{% set hours = hours + bonus / 60 %}\n{% set end_enabled = profile
+            != ''friday'' or is_state(''input_boolean.ps4_friday_end_enabled'',''on'') %}\n{% set valid = start_value
+            not in [''unknown'',''unavailable''] and end_value not in [''unknown'',''unavailable''] and hours >
+            0 %}\n{% set start = today_at(start_value) if valid else today_at(''00:00'') %}\n{% set end = today_at(end_value)
+            if valid else today_at(''00:00'') %}\n\n{% set valid = valid and (not end_enabled or end > start) %}\n{%
+            set allowed = valid and now() >= start and (not end_enabled or now() < end) %}\n{% set used = states(''sensor.ps4_play_time_today'')
+            | float(0) %}\n{% set quota = hours * 60 - used * 60 %}\n{% set remaining = [quota, (end-now()).total_seconds()/60]
+            | min if end_enabled else quota %}\n\n{% set minutes_left = ([0, remaining] | max) | round(0, ''ceil'')
+            | int %}\n{% if is_state(''input_boolean.ps4_manual_block'',''on'') %}\n## 00:00 · Manually blocked\nReleasing
+            this block does not override the schedule or quota.\n{% elif not valid %}\n## ⚠️ Please correct the
+            play window\n{% elif not allowed %}\n## 00:00 · Outside allowed hours\nExtra time does not extend the
+            closing time.\n{% elif not has_value(''sensor.ps4_play_time_today'') %}\n## Waiting for playtime data\n{%
+            else %}\n# {{ ''%02d:%02d'' | format(minutes_left // 60, minutes_left % 60) }}\n{{ ''until Rest Mode''
+            if is_state(''sensor.ps4_ftp_status'',''online'') else ''Time available · console is not online'' }}\n{%
+            endif %}\n\n**Today’s bonus: {{ bonus | int }} min** · Hours:minutes · updates about every minute.\n"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: binary_sensor.ps4_extra_time_available
+            state: 'on'
+          card:
+            type: horizontal-stack
+            cards:
+            - type: custom:bubble-card
+              card_type: button
+              button_type: name
+              name: '${vars[0] ? "הוספת 15 דקות" : "+15 min"}'
+              icon: mdi:timer-plus-outline
+              card_layout: large
+              styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+                } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+                .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+                { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+                }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+                { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+                .bubble-separator, .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state
+                { text-align: left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+                }"}'
+              tap_action:
+                action: call-service
+                service: script.ps4_add_playtime
+                service_data:
+                  minutes: 15
+              button_action:
+                tap_action:
+                  action: call-service
+                  service: script.ps4_add_playtime
+                  service_data:
+                    minutes: 15
+            - type: custom:bubble-card
+              card_type: button
+              button_type: name
+              name: '${vars[0] ? "הוספת 30 דקות" : "+30 min"}'
+              icon: mdi:timer-plus
+              card_layout: large
+              styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #aa9cfa22 !important;
+                } .bubble-icon { color: #aa9cfa !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+                .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+                { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+                }" : ".bubble-button-background { opacity: 1 !important; background: #aa9cfa22 !important; } .bubble-icon
+                { color: #aa9cfa !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+                .bubble-separator, .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state
+                { text-align: left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+                }"}'
+              tap_action:
+                action: call-service
+                service: script.ps4_add_playtime
+                service_data:
+                  minutes: 30
+              button_action:
+                tap_action:
+                  action: call-service
+                  service: script.ps4_add_playtime
+                  service_data:
+                    minutes: 30
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: binary_sensor.ps4_extra_time_available
+            state: 'off'
+          - condition: state
+            entity: input_boolean.ps4_manual_block
+            state: 'off'
+          card:
+            type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: '${vars[0] ? "חסום עכשיו" : "Block now"}'
+            icon: mdi:lock-outline
+            card_layout: large
+            styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #db857d22 !important;
+              } .bubble-icon { color: #db857d !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+              .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+              { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+              }" : ".bubble-button-background { opacity: 1 !important; background: #db857d22 !important; } .bubble-icon
+              { color: #db857d !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+              .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+              left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+            tap_action:
+              action: call-service
+              service: script.ps4_block_playtime
+            button_action:
+              tap_action:
+                action: call-service
+                service: script.ps4_block_playtime
+        - type: conditional
+          conditions:
+          - condition: state
+            entity: input_boolean.ps4_manual_block
+            state: 'on'
+          card:
+            type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: '${vars[0] ? "שחרר חסימה ידנית" : "Release manual block"}'
+            icon: mdi:lock-open-outline
+            card_layout: large
+            styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+              } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+              .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+              { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+              }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+              { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+              .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+              left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+            tap_action:
+              action: call-service
+              service: input_boolean.turn_off
+              service_data:
+                entity_id: input_boolean.ps4_manual_block
+            button_action:
+              tap_action:
+                action: call-service
+                service: input_boolean.turn_off
+                service_data:
+                  entity_id: input_boolean.ps4_manual_block
+        - type: horizontal-stack
+          cards:
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            name: '${vars[0] ? "זמינות ⁦PS4⁩" : "PS4 availability"}'
+            icon: mdi:sony-playstation
+            card_layout: large
+            styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+              } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+              .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+              { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+              }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+              { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+              .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+              left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+            tap_action:
+              action: more-info
+            button_action:
+              tap_action:
+                action: more-info
+            entity: sensor.ps4_ftp_status
+            show_state: true
+          - type: custom:bubble-card
+            card_type: button
+            button_type: state
+            name: '${vars[0] ? "זמן היום" : "Time today"}'
+            icon: mdi:timer-outline
+            card_layout: large
+            styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #aa9cfa22 !important;
+              } .bubble-icon { color: #aa9cfa !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+              .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+              { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+              }" : ".bubble-button-background { opacity: 1 !important; background: #aa9cfa22 !important; } .bubble-icon
+              { color: #aa9cfa !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+              .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+              left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+            tap_action:
+              action: more-info
+            button_action:
+              tap_action:
+                action: more-info
+            entity: sensor.ps4_play_time_today
+            show_state: true
+        - type: custom:bubble-card
+          card_type: button
+          button_type: switch
+          name: '${vars[0] ? "אכיפת שעות ומכסה" : "Schedule & quota enforcement"}'
+          icon: mdi:shield-check-outline
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: toggle
+          button_action:
+            tap_action:
+              action: toggle
+          entity: automation.ps4_playtime_enforcement
+          show_state: true
+        - type: custom:bubble-card
+          card_type: separator
+          name: '${vars[0] ? "הרגלי משחק" : "Playtime history"}'
+          icon: mdi:chart-bar
+          styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+            } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+            plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+        - type: statistics-graph
+          title: '${vars[0] ? "שעות משחק ביום · 7 ימים אחרונים" : "Daily playtime · 7 recent days"}'
+          chart_type: bar
+          period: day
+          days_to_show: 7
+          stat_types:
+          - change
+          entities:
+          - entity: sensor.ps4_play_time_today
+            name: '${vars[0] ? "שעות פעילות" : "Active hours"}'
+            color: '#5abdae'
+          min_y_axis: 0
+          hide_legend: true
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction: rtl;
+              text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; } ha-chart-base
+              { direction: ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown { direction: ltr;
+              text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; } ha-chart-base {
+              direction: ltr; }"}'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "פתיחת תצוגה חודשית" : "Open monthly view"}'
+          icon: mdi:calendar-month-outline
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: /ps4-settings/monthly
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: /ps4-settings/monthly
+        - type: markdown
+          content: '${vars[0] ? "העמודות מציגות זמן פעילות שנרשם. הנתונים מתעדכנים במחזורי הסטטיסטיקה; היום הראשון
+            עשוי להיות חלקי. ימים ללא נתונים אינם מעידים על אפס משחק." : "Bars show recorded activity. Statistics
+            update periodically; the first day may be partial. Missing data does not mean zero playtime."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+  - type: grid
+    cards:
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: vertical-stack
+        cards:
+        - type: custom:bubble-card
+          card_type: separator
+          name: '${vars[0] ? "הזמן שלכם" : "Your schedule"}'
+          icon: mdi:tune-variant
+          styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+            } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+            plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+        - type: markdown
+          content: '${vars[0] ? "בחרו קבוצת ימים לעריכת השעות והמכסה. השינויים נשמרים מיד ונאכפים בתוך כדקה." :
+            "Choose a day group to edit its window and quota. Changes save immediately and apply within about a
+            minute."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "א׳–ה׳ · שעות ומכסה" : "Sun–Thu · Hours & quota"}'
+          icon: mdi:briefcase-outline
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: '#weekday'
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: '#weekday'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "שישי · שעות ומכסה" : "Friday · Hours & quota"}'
+          icon: mdi:weather-sunset
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: '#friday'
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: '#friday'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "שבת · שעות ומכסה" : "Saturday · Hours & quota"}'
+          icon: mdi:sofa-outline
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: '#saturday'
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: '#saturday'
+        - type: custom:bubble-card
+          card_type: separator
+          name: '${vars[0] ? "להתכונן לסיום" : "Time to wrap up"}'
+          icon: mdi:bullhorn-outline
+          styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+            } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+            plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: switch
+          name: '${vars[0] ? "התראות קוליות" : "Speaker announcements"}'
+          icon: mdi:volume-high
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #e0b97622 !important;
+            } .bubble-icon { color: #e0b976 !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #e0b97622 !important; } .bubble-icon
+            { color: #e0b976 !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: toggle
+          button_action:
+            tap_action:
+              action: toggle
+          entity: input_boolean.ps4_voice_enabled
+          show_state: true
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "שעות שקט ותזכורות" : "Quiet hours & reminders"}'
+          icon: mdi:bell-cog-outline
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: '#voice'
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: '#voice'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "איך זה עובד?" : "How does it work?"}'
+          icon: mdi:information-outline
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: '#help'
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: '#help'
+        - type: markdown
+          content: '${vars[0] ? "{% for p,n in [(''weekday'',''א׳–ה׳''),(''friday'',''שישי''),(''saturday'',''שבת'')]
+            %}{% if (p != ''friday'' or is_state(''input_boolean.ps4_friday_end_enabled'',''on'')) and states({''weekday'':
+            ''input_datetime.ps4_weekday_end'', ''friday'': ''input_datetime.ps4_friday_end'', ''saturday'': ''input_datetime.ps4_saturday_end''}[p])
+            <= states({''weekday'': ''input_datetime.ps4_weekday_start'', ''friday'': ''input_datetime.ps4_friday_start'',
+            ''saturday'': ''input_datetime.ps4_saturday_start''}[p]) %}⚠️ **{{ n }}: שעת הסיום חייבת להיות מאוחרת
+            משעת ההתחלה. האכיפה לא תפעל עד לתיקון.**\n{% endif %}{% endfor %}{% if states(''input_datetime.ps4_voice_end'')
+            <= states(''input_datetime.ps4_voice_start'') %}⚠️ **חלון הכריזה אינו תקין — לא תושמע כריזה.**{% endif
+            %}" : "{% for p,n in [(''weekday'',''Sun–Thu''),(''friday'',''Friday''),(''saturday'',''Saturday'')]
+            %}{% if (p != ''friday'' or is_state(''input_boolean.ps4_friday_end_enabled'',''on'')) and states({''weekday'':
+            ''input_datetime.ps4_weekday_end'', ''friday'': ''input_datetime.ps4_friday_end'', ''saturday'': ''input_datetime.ps4_saturday_end''}[p])
+            <= states({''weekday'': ''input_datetime.ps4_weekday_start'', ''friday'': ''input_datetime.ps4_friday_start'',
+            ''saturday'': ''input_datetime.ps4_saturday_start''}[p]) %}⚠️ **{{ n }}: Closing time must follow opening
+            time. Enforcement is suspended until corrected.**\n{% endif %}{% endfor %}{% if states(''input_datetime.ps4_voice_end'')
+            <= states(''input_datetime.ps4_voice_start'') %}⚠️ **Invalid announcement window — speech is suppressed.**{%
+            endif %}"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction: rtl;
+              text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }" : "ha-card {
+              border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none; } ha-card { direction:
+              ltr; text-align: left; } .card-header, ha-markdown { direction: ltr; text-align: left; } ha-textfield,
+              ha-time-input, ha-date-input { direction: ltr; }"}'
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: custom:bubble-card
+        card_type: pop-up
+        hash: '#weekday'
+        name: '${vars[0] ? "א׳–ה׳ · הגדרות" : "Sun–Thu · Settings"}'
+        icon: mdi:tune-variant
+        width_desktop: 560px
+        bg_opacity: '100'
+        button_type: name
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "ערכו את השעה או את מספר השעות. 2.5 = שעתיים וחצי. תחילת הטווח כלולה, שעת הסיום
+            אינה כלולה." : "Edit a time or daily quota. 2.5 means two and a half hours. Opening time is inclusive;
+            closing time is exclusive."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+        - type: entities
+          title: '${vars[0] ? "א׳–ה׳" : "Sun–Thu"}'
+          show_header_toggle: false
+          entities:
+          - entity: input_datetime.ps4_weekday_start
+            name: '${vars[0] ? "מותר לשחק משעה" : "Play from"}'
+          - entity: input_number.ps4_weekday_hours
+            name: '${vars[0] ? "מכסת שעות ביום" : "Daily quota (hours)"}'
+          - entity: input_datetime.ps4_weekday_end
+            name: '${vars[0] ? "שעת סיום" : "Closing time"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction: rtl;
+              text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }" : "ha-card {
+              border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none; } ha-card { direction:
+              ltr; text-align: left; } .card-header, ha-markdown { direction: ltr; text-align: left; } ha-textfield,
+              ha-time-input, ha-date-input { direction: ltr; }"}'
+        styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+          } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+          plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+          .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align: left;
+          direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: custom:bubble-card
+        card_type: pop-up
+        hash: '#friday'
+        name: '${vars[0] ? "שישי · הגדרות" : "Friday · Settings"}'
+        icon: mdi:tune-variant
+        width_desktop: 560px
+        bg_opacity: '100'
+        button_type: name
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "ערכו את השעה או את מספר השעות. 2.5 = שעתיים וחצי. תחילת הטווח כלולה, שעת הסיום
+            אינה כלולה." : "Edit a time or daily quota. 2.5 means two and a half hours. Opening time is inclusive;
+            closing time is exclusive."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+        - type: entities
+          title: '${vars[0] ? "שישי" : "Friday"}'
+          show_header_toggle: false
+          entities:
+          - entity: input_datetime.ps4_friday_start
+            name: '${vars[0] ? "מותר לשחק משעה" : "Play from"}'
+          - entity: input_number.ps4_friday_hours
+            name: '${vars[0] ? "מכסת שעות ביום" : "Daily quota (hours)"}'
+          - entity: input_boolean.ps4_friday_end_enabled
+            name: '${vars[0] ? "הגבלת שעת סיום — כבוי = ללא סיום" : "Enable closing time · off = no closing time"}'
+          - entity: input_datetime.ps4_friday_end
+            name: '${vars[0] ? "שעת סיום — חלה רק כשהמתג פעיל" : "Closing time · only when enabled"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction: rtl;
+              text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }" : "ha-card {
+              border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none; } ha-card { direction:
+              ltr; text-align: left; } .card-header, ha-markdown { direction: ltr; text-align: left; } ha-textfield,
+              ha-time-input, ha-date-input { direction: ltr; }"}'
+        styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+          } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+          plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+          .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align: left;
+          direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: custom:bubble-card
+        card_type: pop-up
+        hash: '#saturday'
+        name: '${vars[0] ? "שבת · הגדרות" : "Saturday · Settings"}'
+        icon: mdi:tune-variant
+        width_desktop: 560px
+        bg_opacity: '100'
+        button_type: name
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "ערכו את השעה או את מספר השעות. 2.5 = שעתיים וחצי. תחילת הטווח כלולה, שעת הסיום
+            אינה כלולה." : "Edit a time or daily quota. 2.5 means two and a half hours. Opening time is inclusive;
+            closing time is exclusive."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+        - type: entities
+          title: '${vars[0] ? "שבת" : "Saturday"}'
+          show_header_toggle: false
+          entities:
+          - entity: input_datetime.ps4_saturday_start
+            name: '${vars[0] ? "מותר לשחק משעה" : "Play from"}'
+          - entity: input_number.ps4_saturday_hours
+            name: '${vars[0] ? "מכסת שעות ביום" : "Daily quota (hours)"}'
+          - entity: input_datetime.ps4_saturday_end
+            name: '${vars[0] ? "שעת סיום" : "Closing time"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction: rtl;
+              text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }" : "ha-card {
+              border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none; } ha-card { direction:
+              ltr; text-align: left; } .card-header, ha-markdown { direction: ltr; text-align: left; } ha-textfield,
+              ha-time-input, ha-date-input { direction: ltr; }"}'
+        styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+          } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+          plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+          .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align: left;
+          direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: custom:bubble-card
+        card_type: pop-up
+        hash: '#voice'
+        name: '${vars[0] ? "כריזה ושעות שקט" : "Announcements & quiet hours"}'
+        icon: mdi:tune-variant
+        width_desktop: 560px
+        bg_opacity: '100'
+        button_type: name
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "הכריזה מותרת רק בתוך חלון השעות, בכל ימות השבוע. מחוץ לחלון ההתראות מדולגות. ההתראה
+            מחושבת לפי המוקדם בין סוף המכסה לסוף שעות המשחק." : "Speech is allowed only within its window, every
+            day. Reminders outside it are skipped. Reminders use the earlier of quota expiry and closing time."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
+        - type: entities
+          title: '${vars[0] ? "🔊 כריזה — Speaker" : "🔊 Speaker announcements"}'
+          show_header_toggle: false
+          entities:
+          - entity: input_boolean.ps4_voice_enabled
+            name: '${vars[0] ? "אפשר כריזה" : "Enable announcements"}'
+          - entity: input_datetime.ps4_voice_start
+            name: '${vars[0] ? "כריזה מותרת משעה" : "Announce from"}'
+          - entity: input_datetime.ps4_voice_end
+            name: '${vars[0] ? "שקט החל משעה" : "Quiet from"}'
+          - entity: input_number.ps4_warning_early
+            name: '${vars[0] ? "התראה ראשונה — דקות לפני הסיום" : "First reminder · minutes before end"}'
+          - entity: input_number.ps4_warning_soon
+            name: '${vars[0] ? "התראה שנייה — דקות לפני הסיום" : "Second reminder · minutes before end"}'
+          - entity: input_number.ps4_warning_final
+            name: '${vars[0] ? "התראה אחרונה — דקות לפני הסיום" : "Final reminder · minutes before end"}'
+          card_mod:
+            style: '${vars[0] ? " ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction:
+              rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }" : " ha-card
+              { direction: ltr; text-align: left; } .card-header, ha-markdown { direction: ltr; text-align: left;
+              } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }"}'
+        styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+          } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+          plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+          .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align: left;
+          direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: custom:bubble-card
+        card_type: pop-up
+        hash: '#help'
+        name: '${vars[0] ? "מדריך קצר" : "Quick guide"}'
+        icon: mdi:tune-variant
+        width_desktop: 560px
+        bg_opacity: '100'
+        button_type: name
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "### איך משנים?\n- לחצו על שדה שעה או מכסה ועדכנו את הערך. המכסה בשעות: 2.5 = שעתיים
+            וחצי.\n- שישי: מתג שעת הסיום כבוי פירושו שאין שעת סיום ביום שישי. כללי שבת חלים מחצות.\n- בחרו שעת התחלה
+            מוקדמת משעת סיום. טווחים חוצי חצות אינם נתמכים.\n- כריזה רק בחלון שהוגדר, גם בהפעלה ידנית. התראות מחוץ
+            לחלון יידלגו. מומלץ לסדר התראות מהגדולה לקטנה (30, 10, 1).\n- הספירה מתאפסת בחצות וכוללת גם מסך בית.
+            היא מבוססת על FTP: ניתוק רשת או כיבוי FTP אינם נספרים.\n- פקודת CEC עשויה להעביר טלוויזיות מסוימות למצב תמונות.
+            היעדר FTP אינו לבדו אישור למצב מנוחה." : "### How to edit\n- Select a time or quota. 2.5 means two and
+            a half hours.\n- Friday: disable the closing-time toggle for no closing time; Saturday rules start at
+            midnight.\n- Opening time must precede closing time. Overnight windows are not supported.\n- Speech
+            is allowed only inside its configured window. Other reminders are skipped. Use descending thresholds
+            (30, 10, 1).\n- Daily counting resets at midnight and includes the home screen. FTP/network outages
+            do not count.\n- CEC can put Some TVs in Art Mode. FTP offline alone does not prove Rest Mode.\n- Extra-time
+            buttons add quota for today only and do not extend closing time.\n"}'
+          card_mod:
+            style: '${vars[0] ? " ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction:
+              rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }" : " ha-card
+              { direction: ltr; text-align: left; } .card-header, ha-markdown { direction: ltr; text-align: left;
+              } ha-textfield, ha-time-input, ha-date-input { direction: ltr; }"}'
+        styles: '${vars[0] ? " .bubble-button-card-container, .bubble-separator, .bubble-header { direction: rtl;
+          } .bubble-name-container, .bubble-name, .bubble-state { text-align: right; direction: rtl; unicode-bidi:
+          plaintext; } .bubble-name { white-space: normal; }" : " .bubble-button-card-container, .bubble-separator,
+          .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align: left;
+          direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+- title: Monthly
+  path: monthly
+  icon: mdi:calendar-month
+  type: sections
+  max_columns: 1
+  sections:
+  - type: grid
+    cards:
+    - type: custom:config-template-card
+      entities:
+      - input_datetime.ps4_weekday_start
+      - input_datetime.ps4_weekday_end
+      - input_number.ps4_weekday_hours
+      - input_datetime.ps4_friday_start
+      - input_datetime.ps4_friday_end
+      - input_number.ps4_friday_hours
+      - input_datetime.ps4_saturday_start
+      - input_datetime.ps4_saturday_end
+      - input_number.ps4_saturday_hours
+      - input_datetime.ps4_voice_start
+      - input_datetime.ps4_voice_end
+      - input_number.ps4_warning_early
+      - input_number.ps4_warning_soon
+      - input_number.ps4_warning_final
+      - input_boolean.ps4_friday_end_enabled
+      - input_boolean.ps4_voice_enabled
+      - input_number.ps4_bonus_minutes
+      - input_datetime.ps4_bonus_date
+      - input_boolean.ps4_manual_block
+      - sensor.ps4_ftp_status
+      - sensor.ps4_play_time_today
+      - binary_sensor.ps4_extra_time_available
+      - automation.ps4_playtime_enforcement
+      variables:
+      - /^(he|iw)(-|$)/i.test(this.hass.locale?.language || this.hass.language || 'en')
+      card:
+        type: vertical-stack
+        cards:
+        - type: markdown
+          content: '${vars[0] ? "# 📊 מבט חודשי\nשעות פעילות ליום · 30 הימים האחרונים" : "# 📊 Monthly overview\nDaily
+            active hours · last 30 days"}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-card { background: linear-gradient(125deg, #172b4d, #23465c 55%, #275a58); color: #fff;
+              padding: 10px 12px; } ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right;
+              } .card-header, ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input
+              { direction: ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-card { background: linear-gradient(125deg, #172b4d, #23465c 55%, #275a58); color: #fff;
+              padding: 10px 12px; } ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left;
+              } .card-header, ha-markdown { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input
+              { direction: ltr; }"}'
+        - type: custom:bubble-card
+          card_type: button
+          button_type: name
+          name: '${vars[0] ? "חזרה לשבוע ולהגדרות" : "Back to weekly view & settings"}'
+          icon: mdi:arrow-right
+          card_layout: large
+          styles: '${vars[0] ? ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important;
+            } .bubble-icon { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container,
+            .bubble-separator, .bubble-header { direction: rtl; } .bubble-name-container, .bubble-name, .bubble-state
+            { text-align: right; direction: rtl; unicode-bidi: plaintext; } .bubble-name { white-space: normal;
+            }" : ".bubble-button-background { opacity: 1 !important; background: #64c8ba22 !important; } .bubble-icon
+            { color: #64c8ba !important; } .bubble-name { font-weight: 700; } .bubble-button-card-container, .bubble-separator,
+            .bubble-header { direction: ltr; } .bubble-name-container, .bubble-name, .bubble-state { text-align:
+            left; direction: ltr; unicode-bidi: plaintext; } .bubble-name { white-space: normal; }"}'
+          tap_action:
+            action: navigate
+            navigation_path: /ps4-settings/settings
+          button_action:
+            tap_action:
+              action: navigate
+              navigation_path: /ps4-settings/settings
+        - type: statistics-graph
+          title: '${vars[0] ? "שעות משחק ביום · 30 ימים אחרונים" : "Daily playtime · 30 recent days"}'
+          chart_type: bar
+          period: day
+          days_to_show: 30
+          stat_types:
+          - change
+          entities:
+          - entity: sensor.ps4_play_time_today
+            name: '${vars[0] ? "שעות פעילות" : "Active hours"}'
+            color: '#5abdae'
+          min_y_axis: 0
+          hide_legend: true
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: rtl; text-align: right; } .card-header, ha-markdown { direction: rtl;
+              text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; } ha-chart-base
+              { direction: ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown { direction: ltr;
+              text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr; } ha-chart-base {
+              direction: ltr; }"}'
+        - type: markdown
+          content: '${vars[0] ? "**מה נספר?** זמן שבו חיישן FTP מדווח online, כולל מסך הבית.\n\n**מה לא נספר?**
+            ניתוק רשת או FTP שאינו זמין.\n\nהגרף משתמש בשינוי של הסכום המצטבר בסטטיסטיקה ארוכת טווח, כך שאיפוס המכסה
+            בחצות אינו מאפס את ההיסטוריה. הנתונים נאספים מהפעלת החיישן; היום הראשון עלול להיות חלקי." : "**What
+            counts?** Time the FTP sensor reports online, including the home screen.\n\n**What does not?** Network/FTP
+            outages.\n\nThe chart uses daily change in the cumulative long-term statistics sum. Midnight quota resets
+            do not erase history. Collection starts when the sensor is enabled; the first day may be partial."}'
+          card_mod:
+            style: '${vars[0] ? "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow:
+              none; }ha-markdown { direction: rtl; } ha-card { direction: rtl; text-align: right; } .card-header,
+              ha-markdown { direction: rtl; text-align: right; } ha-textfield, ha-time-input, ha-date-input { direction:
+              ltr; }" : "ha-card { border-radius: 26px; border: 1px solid rgba(130,150,180,.16); box-shadow: none;
+              }ha-markdown { direction: ltr; } ha-card { direction: ltr; text-align: left; } .card-header, ha-markdown
+              { direction: ltr; text-align: left; } ha-textfield, ha-time-input, ha-date-input { direction: ltr;
+              }"}'
