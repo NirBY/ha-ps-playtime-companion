@@ -1,4 +1,4 @@
-# Compatibility and prerequisites — v0.6.0
+# Compatibility and prerequisites — v0.6.1
 
 ## Version scope
 

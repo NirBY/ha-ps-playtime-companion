@@ -2,9 +2,9 @@
 
 **A Home Assistant playtime dashboard, daily schedules, quotas and quiet-hour-aware reminders.**
 
-**Release v0.6.0 · PS4 · Home Assistant Core 2026.9.4 validated**
+**Release v0.6.1 · PS4 · Home Assistant Core 2026.9.4 validated**
 
-[Compatibility & prerequisites](docs/COMPATIBILITY.md) · [Architecture & flowchart](docs/ARCHITECTURE.md) · [Release notes](docs/RELEASE-v0.6.0.md)
+[Compatibility & prerequisites](docs/COMPATIBILITY.md) · [Architecture & flowchart](docs/ARCHITECTURE.md) · [Release notes](docs/RELEASE-v0.6.1.md)
 
 ![English fictional demo](docs/images/demo-en.png)
 
